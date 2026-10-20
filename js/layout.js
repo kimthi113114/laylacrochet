@@ -60,6 +60,16 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
     ? `Freeship đơn từ ${money(settings.freeshipThreshold)}${settings.shippingFee ? `, dưới mức này phí ship ${money(settings.shippingFee)}` : ''}.`
     : 'Freeship mọi đơn hàng.';
 
+  // Nút về đầu trang: mũi tên nảy nhẹ; khi bấm thì "phóng" lên cùng lúc trang cuộn mượt
+  const toTop = h('button', { type: 'button', 'aria-label': 'Về đầu trang', class: 'to-top group inline-flex items-center gap-2.5 pl-1.5 pr-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-cream-100 text-xs font-bold',
+    onclick: (e) => {
+      const btn = e.currentTarget;
+      btn.classList.remove('to-top-go'); void btn.offsetWidth; btn.classList.add('to-top-go');
+      scrollTo({ top: 0, behavior: 'smooth' });
+    } },
+    h('span', { class: 'to-top-ring w-9 h-9 rounded-full bg-yarn-orange text-white flex items-center justify-center shadow-lg' }, ic('chevron-up', 'to-top-arrow w-4 h-4')),
+    'Về đầu trang');
+
   const footer = h('footer', { id: 'contact', class: 'bg-yarn-dark text-cream-100' },
     h('div', { class: 'stitch-border opacity-40' }),
     h('div', { class: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-28 md:pb-10' },
@@ -85,16 +95,19 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
             h('li', { class: 'flex items-start gap-2' }, h('span', { 'aria-hidden': 'true' }, '💬'), h('span', {}, 'Đặt hàng: bỏ vào giỏ, bấm gửi qua Zalo hoặc Messenger, shop sẽ xác nhận với bạn.'))))),
       h('div', { class: 'mt-9 pt-5 border-t border-white/10 flex flex-col-reverse sm:flex-row items-center justify-between gap-4 text-xs text-cream-200/60' },
         h('span', {}, `© ${new Date().getFullYear()} ${settings.shopName}. Handmade tại Việt Nam 🧶`),
-        h('button', { type: 'button', onclick: () => scrollTo({ top: 0, behavior: 'smooth' }), class: 'inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-cream-100 font-bold active:scale-95 transition-all' }, ic('chevron-up', 'w-3.5 h-3.5'), 'Về đầu trang'))));
+        toTop)));
 
   // ----- thanh đặt hàng cố định dưới cùng (chỉ điện thoại) -----
   const mBadge = h('span', { class: 'absolute -top-1.5 -right-1.5 bg-yarn-yellow text-yarn-dark font-extrabold text-[10px] w-4 h-4 rounded-full flex items-center justify-center' });
   const mTotal = h('div', { class: 'font-serif font-bold text-sm text-yarn-yellow leading-tight mt-0.5' });
-  const quick = (href, label, inner) => href && h('a', { href, target: '_blank', rel: 'noopener', class: 'flex flex-col items-center justify-center px-2.5 py-1 rounded-xl active:bg-blue-50 text-yarn-dark' }, inner, h('span', { class: 'text-[10px] font-bold mt-0.5' }, label));
+  // Liên hệ: cuộn mượt xuống cuối trang, nơi footer có nút Zalo / Messenger
+  const contactQuick = h('button', { type: 'button', onclick: () => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }),
+    class: 'flex flex-col items-center justify-center px-3 py-1 rounded-xl active:bg-amber-50 text-yarn-dark' },
+    h('div', { class: 'w-6 h-6 rounded-full bg-yarn-orange text-white flex items-center justify-center' }, ic('message-circle', 'w-3.5 h-3.5', { fill: true })),
+    h('span', { class: 'text-[10px] font-bold mt-0.5' }, 'Liên hệ'));
   const bottomBar = h('div', { class: 'md:hidden fixed bottom-0 inset-x-0 z-40 glass-bottom-nav border-t border-amber-900/10 px-3 py-2 pb-safe' },
     h('div', { class: 'flex items-center justify-between gap-2 max-w-md mx-auto' },
-      quick(zalo, 'Chat Zalo', h('div', { class: 'w-6 h-6 rounded-full bg-[#0068FF] text-white flex items-center justify-center text-[10px] font-extrabold shadow-sm' }, 'Z')),
-      quick(mess, 'Messenger', h('div', { class: 'w-6 h-6 rounded-full bg-gradient-to-br from-[#00B2FF] to-[#006AFF] text-white flex items-center justify-center' }, ic('message-circle', 'w-3.5 h-3.5', { fill: true }))),
+      contactQuick,
       h('button', { type: 'button', onclick: openCart, class: 'flex-1 bg-gradient-to-r from-yarn-dark to-[#3B2E28] active:scale-95 text-white p-2.5 rounded-2xl shadow-lg flex items-center justify-between transition-all' },
         h('div', { class: 'flex items-center gap-2' },
           h('div', { class: 'relative bg-yarn-orange w-8 h-8 rounded-xl flex items-center justify-center' }, ic('shopping-bag', 'w-4 h-4 text-white'), mBadge),
@@ -114,6 +127,7 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
   addEventListener('storage', (e) => { if (e.key === null || e.key === 'layla_cart_v1') cart.reload(); });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') cart.reload(); });
 
+  document.getElementById('sk-head')?.remove(); // khung chờ của header (product.html)
   const main = document.querySelector('main');
   document.body.insertBefore(announce, main);
   document.body.insertBefore(header, main);

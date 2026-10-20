@@ -62,6 +62,7 @@ async function init() {
   const benefit = (name, cls, text) => h('div', { class: 'flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-amber-900/10 shrink-0' }, ic(name, `w-4 h-4 ${cls}`), h('span', { class: 'text-xs font-semibold text-yarn-dark' }, text));
   const related = products.filter((x) => x.slug !== p.slug && x.category === p.category).slice(0, 4);
 
+  root.removeAttribute('aria-busy');
   fill(root,
     h('section', { class: 'pt-4 pb-10 sm:py-12' },
       h('div', { class: 'max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8' },
