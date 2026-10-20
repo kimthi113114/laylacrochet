@@ -9,4 +9,5 @@ export async function loadData() {
 }
 
 // Trang tĩnh do build sinh ra (scripts/build-site.js hoặc nút Publish trong admin)
-export const productUrl = (slug) => `/p/${encodeURIComponent(slug)}.html`;
+// Địa chỉ gọn (không .html): Cloudflare phục vụ file p/<slug>.html tại /p/<slug> và chuyển hướng bản .html về đây
+export const productUrl = (slug) => `/p/${encodeURIComponent(slug)}`;
