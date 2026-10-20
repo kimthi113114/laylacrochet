@@ -1,114 +1,87 @@
-import { fill, h, productImage } from './dom.js';
-import { loadData, productUrl } from './data.js';
-import { createCart, buildItem } from './cart.js';
-import { defaultSelection, findVariant, hasOptions, isAvailable, missingOptions, priceRange } from './catalog.js';
-import { discountPct, money } from './format.js';
+import { fill, h, ic, badgeClass, productVisual } from './dom.js';
+import { loadData } from './data.js';
+import { createCart } from './cart.js';
+import { createPanel } from './panel.js';
+import { card } from './card.js';
 import { mountLayout, toast } from './layout.js';
 
 const slugFromUrl = () => document.body.dataset.slug || new URLSearchParams(location.search).get('slug');
 
 function notFound(root) {
   document.title = 'Không tìm thấy sản phẩm';
-  root.replaceChildren(h('div', { class: 'wrap notice' }, h('h1', {}, 'Không tìm thấy sản phẩm'),
-    h('p', {}, 'Sản phẩm có thể đã ngừng bán hoặc đường dẫn chưa đúng.'), h('a', { class: 'btn btn-main', href: '/#san-pham' }, 'Xem tất cả sản phẩm')));
+  fill(root, h('div', { class: 'max-w-3xl mx-auto px-4 py-20 text-center space-y-4' },
+    h('h1', { class: 'font-serif text-3xl font-bold text-yarn-dark' }, 'Không tìm thấy sản phẩm'),
+    h('p', { class: 'text-yarn-muted' }, 'Sản phẩm có thể đã ngừng bán hoặc đường dẫn chưa đúng.'),
+    h('a', { href: '/#collection', class: 'inline-block bg-yarn-dark text-white font-bold px-5 py-3 rounded-2xl' }, 'Xem tất cả sản phẩm')));
 }
 
 async function init() {
   const root = document.getElementById('app');
   let data;
   try { data = await loadData(); } catch {
-    root.replaceChildren(h('div', { class: 'wrap notice' }, h('p', {}, 'Không tải được dữ liệu. Vui lòng thử lại sau.')));
+    fill(root, h('div', { class: 'max-w-3xl mx-auto px-4 py-16 text-center text-yarn-muted' }, 'Không tải được dữ liệu. Vui lòng thử lại sau.'));
     return;
   }
   const { products, categories, settings } = data;
   const cart = createCart(localStorage);
   for (const n of cart.reconcile(products)) toast(n);
-  const layout = mountLayout({ settings, cart, products });
+  const { openCart } = mountLayout({ settings, cart, products });
 
   const p = products.find((x) => x.slug === slugFromUrl());
   if (!p) return notFound(root);
   document.title = `${p.name} – ${settings.shopName}`;
   const cat = categories.find((c) => c.slug === p.category);
 
-  const selection = defaultSelection(p);
-  let qty = 1;
   let galleryIdx = 0;
   let preferVariantImg = false; // true sau khi khách đổi tuỳ chọn; false sau khi bấm ảnh nhỏ
+  const stage = h('div', { class: 'relative rounded-3xl bg-gradient-to-b from-cream-100 to-cream-200/60 border border-amber-900/10 aspect-square flex items-center justify-center p-4 sm:p-6 overflow-hidden' });
+  const thumbs = h('div', { class: 'flex gap-2 overflow-x-auto no-scrollbar mt-3' });
 
-  const gallery = h('div', { class: 'gallery' });
-  const info = h('div', { class: 'info' });
-
-  const currentVariant = () => findVariant(p, selection);
-  const mainImageBase = () => (preferVariantImg && currentVariant()?.image) || p.images[galleryIdx]?.base || currentVariant()?.image || null;
-
-  function drawGallery() {
-    const imgs = p.images;
-    fill(gallery,
-      h('div', { class: 'main-img' }, productImage(mainImageBase(), { alt: p.name, seed: p.slug, sizes: '(min-width:900px) 50vw, 100vw', eager: true })),
-      imgs.length > 1 && h('div', { class: 'thumbs' }, imgs.map((im, i) => h('button', {
-        type: 'button', class: i === galleryIdx ? 'on' : '', 'aria-label': `Ảnh ${i + 1}`,
-        onclick: () => { galleryIdx = i; preferVariantImg = false; drawAll(); } }, productImage(im.base, { alt: '', seed: p.slug, sizes: '72px' })))));
+  let current = { variant: null, label: '' };
+  function drawVisual() {
+    const photo = (preferVariantImg && current.image) || p.images[galleryIdx]?.base || current.image || null;
+    fill(stage,
+      p.badge && h('span', { class: `absolute top-3 left-3 ${badgeClass(p.badgeColor)} text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full shadow-sm z-10` }, p.badge),
+      productVisual(p, { base: photo, variantLabel: current.label, eager: true, sizes: '(min-width:1024px) 50vw, 100vw',
+        cls: 'w-full h-full object-cover rounded-2xl', illusCls: '[&>svg]:w-64 [&>svg]:h-72 sm:[&>svg]:w-80 sm:[&>svg]:h-96 [&>svg]:max-w-none animate-float' }));
+    fill(thumbs, p.images.length > 1 && p.images.map((im, i) => h('button', {
+      type: 'button', 'aria-label': `Xem ảnh ${i + 1}`, 'aria-pressed': i === galleryIdx ? 'true' : 'false',
+      class: `w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-xl overflow-hidden border-2 ${i === galleryIdx ? 'border-yarn-orange' : 'border-transparent opacity-80'}`,
+      onclick: () => { galleryIdx = i; preferVariantImg = false; drawVisual(); },
+    }, productVisual(p, { base: im.base, sizes: '80px' }))));
   }
 
-  function optionGroup(o, oi) {
-    return h('fieldset', { class: 'opt' },
-      h('legend', {}, o.name, selection[oi] !== undefined && h('span', { class: 'picked' }, `: ${o.values.find((v) => v.id === selection[oi])?.label}`)),
-      h('div', { class: 'opt-values' }, o.values.map((v) => {
-        const on = selection[oi] === v.id;
-        const ok = isAvailable(p, selection, oi, v.id);
-        return h('button', { type: 'button', 'data-fk': `o${oi}-${v.id}`, class: `opt-chip${on ? ' on' : ''}${ok ? '' : ' na'}`, 'aria-pressed': on ? 'true' : 'false', 'aria-disabled': ok ? null : 'true',
-          title: ok ? null : 'Hết hàng với lựa chọn hiện tại',
-          onclick: () => { if (!ok && !on) return; selection[oi] = on ? undefined : v.id; preferVariantImg = true; drawAll(); } },
-          v.swatch && h('i', { class: 'sw', style: { background: v.swatch }, 'aria-hidden': 'true' }), v.label);
-      })));
-  }
+  const panel = createPanel(p, {
+    cart, openCart, toast,
+    onChange: (state) => { current = state; preferVariantImg = true; drawVisual(); },
+  });
+  current = panel.state();
+  drawVisual();
 
-  function drawInfo() {
-    const v = currentVariant();
-    const r = priceRange(p);
-    const price = v ? v.price : r.min;
-    const old = v ? v.oldPrice : r.oldPrice;
-    const pct = discountPct(price, old);
-    const needs = hasOptions(p) ? missingOptions(p, selection) : [];
-    const soldOut = hasOptions(p) ? r.soldOut : false;
-    const act = (go) => {
-      try { cart.add(buildItem(p, selection), qty); } catch (e) { toast(e.message); return; }
-      if (go) layout.openCart(); else toast('Đã thêm vào giỏ hàng 🧶');
-    };
-    const disabled = soldOut || needs.length > 0;
-    const fk = document.activeElement?.dataset?.fk;
-    fill(info,
-      cat && h('a', { class: 'crumb', href: `/#${cat.slug}` }, `← ${cat.name}`),
-      h('h1', {}, p.name),
-      p.badge && h('span', { class: 'badge inline' }, p.badge),
-      h('div', { class: 'price big' },
-        h('strong', {}, `${!v && r.min !== r.max ? 'Từ ' : ''}${money(price)}`),
-        old > price && h('s', {}, money(old)), pct > 0 && h('span', { class: 'off inline' }, `-${pct}%`)),
-      h('p', { class: 'desc' }, p.desc),
-      ...(hasOptions(p) ? p.options.map(optionGroup) : []),
-      h('div', { class: 'buy' },
-        h('div', { class: 'qty lg', role: 'group', 'aria-label': 'Số lượng' },
-          h('button', { type: 'button', 'data-fk': 'qty-', 'aria-label': 'Giảm', onclick: () => { qty = Math.max(1, qty - 1); drawInfo(); } }, '−'),
-          h('span', {}, qty),
-          h('button', { type: 'button', 'data-fk': 'qty+', 'aria-label': 'Tăng', onclick: () => { qty = Math.min(20, qty + 1); drawInfo(); } }, '+')),
-        h('button', { class: 'btn btn-ghost', type: 'button', disabled, onclick: () => act(false) }, 'Thêm vào giỏ'),
-        h('button', { class: 'btn btn-main', type: 'button', disabled, onclick: () => act(true) }, 'Mua ngay')),
-      soldOut ? h('p', { class: 'err' }, 'Sản phẩm tạm hết hàng.')
-        : needs.length > 0 && h('p', { class: 'hint-pick' }, `Vui lòng chọn ${needs.join(', ')}`),
-      h('ul', { class: 'perks' }, h('li', {}, '🧶 Móc tay thủ công'), h('li', {}, '🎁 Đóng gói quà tặng'), h('li', {}, '💬 Chốt đơn nhanh qua Zalo / Messenger')));
-    if (fk) info.querySelector(`[data-fk="${fk}"]`)?.focus({ preventScroll: true });
-  }
-
-  function drawAll() { drawGallery(); drawInfo(); }
-
+  const benefit = (name, cls, text) => h('div', { class: 'flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-amber-900/10 shrink-0' }, ic(name, `w-4 h-4 ${cls}`), h('span', { class: 'text-xs font-semibold text-yarn-dark' }, text));
   const related = products.filter((x) => x.slug !== p.slug && x.category === p.category).slice(0, 4);
+
   fill(root,
-    h('div', { class: 'wrap product' }, gallery, info),
-    related.length > 0 && h('section', { class: 'section alt' }, h('div', { class: 'wrap' }, h('h2', { class: 'sec-title' }, 'Có thể bạn cũng thích'),
-      h('div', { class: 'grid' }, related.map((x) => h('a', { class: 'card', href: productUrl(x.slug) },
-        h('div', { class: 'card-img' }, productImage(x.images[0]?.base, { alt: x.name, seed: x.slug })),
-        h('div', { class: 'card-body' }, h('h3', {}, x.name), h('div', { class: 'price' }, h('strong', {}, `${priceRange(x).min !== priceRange(x).max ? 'Từ ' : ''}${money(priceRange(x).min)}`)))))))));
-  drawAll();
+    h('section', { class: 'pt-4 pb-10 sm:py-12' },
+      h('div', { class: 'max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8' },
+        h('nav', { 'aria-label': 'Đường dẫn', class: 'text-[11px] sm:text-xs font-semibold text-yarn-muted mb-3 sm:mb-5 flex items-center gap-1.5 flex-wrap' },
+          h('a', { href: '/', class: 'hover:text-yarn-orange' }, 'Trang chủ'), '›',
+          cat && [h('a', { href: `/#${cat.slug}`, class: 'hover:text-yarn-orange' }, cat.name), '›'],
+          h('span', { class: 'text-yarn-dark truncate' }, p.name)),
+        h('div', { class: 'grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start' },
+          h('div', { class: 'lg:col-span-6 lg:sticky lg:top-24' }, stage, thumbs),
+          h('div', { class: 'lg:col-span-6 space-y-4 sm:space-y-6' },
+            h('div', { class: 'space-y-2' },
+              h('div', { class: 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-yarn-orange text-[11px] font-extrabold uppercase tracking-wider' }, ic('sparkles', 'w-3.5 h-3.5'), h('span', {}, cat ? cat.name : 'Thủ Công Độc Bản')),
+              h('h1', { class: 'font-serif text-3xl sm:text-4xl font-bold text-yarn-dark leading-[1.15]' }, p.name),
+              h('p', { class: 'text-xs sm:text-base text-yarn-muted leading-relaxed' }, p.desc)),
+            panel.el,
+            h('div', { class: 'flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1' },
+              benefit('smartphone', 'text-yarn-green', 'Vừa mọi dòng Pro Max'), benefit('shield-check', 'text-yarn-orange', 'Len dày chống sốc'), benefit('gift', 'text-yarn-red', 'Quà tặng ý nghĩa')))))),
+    related.length > 0 && h('section', { class: 'py-10 sm:py-14 bg-cream-100/70 border-t border-amber-900/5' },
+      h('div', { class: 'max-w-7xl mx-auto px-3 sm:px-6 lg:px-8' },
+        h('h2', { class: 'font-serif text-xl sm:text-3xl font-bold text-yarn-dark mb-5 sm:mb-8' }, 'Có Thể Bạn Cũng Thích'),
+        h('div', { class: 'grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6' }, related.map((x) => card(x, cart))))));
 }
 
 init();

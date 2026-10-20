@@ -1,6 +1,6 @@
 // Giỏ hàng thuần: không truy cập DOM. Storage được truyền vào để test.
 // Item: {key, slug, variantId|null, name, label, price, qty, base}
-import { findVariant, hasOptions, variantLabel } from './catalog.js';
+import { findVariant, hasOptions, variantImage, variantLabel } from './catalog.js';
 
 const KEY = 'layla_cart_v1';
 export const MAX_QTY = 20;
@@ -54,6 +54,7 @@ export function createCart(storage = null) {
       for (const it of items) {
         const p = bySlug.get(it.slug);
         let price;
+        let base = p?.images?.[0]?.base ?? null;
         let name = it.name;
         let label = it.label;
         if (!p) { notes.push(`"${it.name}" không còn bán, đã bỏ khỏi giỏ`); continue; }
@@ -62,13 +63,14 @@ export function createCart(storage = null) {
           if (!v || !v.inStock) { notes.push(`"${it.name}${it.label ? ` (${it.label})` : ''}" đã hết hàng, đã bỏ khỏi giỏ`); continue; }
           price = v.price;
           label = variantLabel(p, v);
+          base = variantImage(p, v);
         } else {
           if (it.variantId) { notes.push(`"${it.name}" đã thay đổi, vui lòng chọn lại`); continue; }
           price = p.price;
         }
         name = p.name;
         if (price !== it.price) notes.push(`Giá "${name}" đã đổi: ${it.price.toLocaleString('vi-VN')}đ → ${price.toLocaleString('vi-VN')}đ`);
-        next.push({ ...it, name, label, price, base: p.images[0]?.base ?? null });
+        next.push({ ...it, name, label, price, base });
       }
       const changed = notes.length > 0;
       if (changed) { items = next; emit(); }
@@ -85,5 +87,5 @@ export function buildItem(p, selection) {
   const v = findVariant(p, selection);
   if (!v) throw new Error('Vui lòng chọn đầy đủ tuỳ chọn');
   if (!v.inStock) throw new Error('Tuỳ chọn này đã hết hàng');
-  return { key: itemKey(p.slug, v.id), slug: p.slug, variantId: v.id, name: p.name, label: variantLabel(p, v), price: v.price, base: v.image ?? p.images[0]?.base ?? null };
+  return { key: itemKey(p.slug, v.id), slug: p.slug, variantId: v.id, name: p.name, label: variantLabel(p, v), price: v.price, base: variantImage(p, v) };
 }

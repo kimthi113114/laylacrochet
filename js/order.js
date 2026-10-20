@@ -35,7 +35,7 @@ export function buildOrderMessage({ items, customer, settings, note = '' }) {
     `ĐƠN HÀNG - ${settings.shopName}`,
     '',
     `Khách: ${customer.name.trim()}`,
-    `SĐT: ${normalizePhone(customer.phone)}`,
+    `SĐT: ${normalizePhone(customer.phone) ?? String(customer.phone ?? '').trim()}`,
     `Địa chỉ: ${customer.address.trim()}`,
     '',
     'Sản phẩm:',

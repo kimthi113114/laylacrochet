@@ -1,3 +1,6 @@
+import { icon } from './icons.js';
+import { ILLUSTRATIONS, illustrationFor } from './illustrations.js';
+
 // Tạo phần tử an toàn (luôn dùng textContent, không innerHTML với dữ liệu).
 export function h(tag, attrs = {}, ...kids) {
   const el = document.createElement(tag);
@@ -18,27 +21,45 @@ export function fill(parent, ...kids) {
   parent.replaceChildren(...kids.flat(Infinity).filter((k) => k != null && k !== false));
 }
 
-const hueOf = (s) => [...s].reduce((n, c) => (n * 31 + c.charCodeAt(0)) % 360, 7);
-
-/** Ảnh sản phẩm: webp nhiều cỡ; chưa có ảnh -> khung màu placeholder. */
-export function productImage(base, { alt = '', seed = alt, sizes = '(min-width:900px) 25vw, 50vw', eager = false } = {}) {
-  if (!base) {
-    const hue = hueOf(seed);
-    return h('div', { class: 'ph', role: 'img', 'aria-label': alt, style: { '--h': hue } }, h('span', {}, '🧶'));
-  }
-  const u = (s) => `/images/products/${base}-${s}.webp`;
-  return h('img', {
-    src: u(800), srcset: `${u(400)} 400w, ${u(800)} 800w, ${u(1600)} 1600w`, sizes, alt,
-    loading: eager ? 'eager' : 'lazy', decoding: 'async',
-  });
+/** CHỈ dùng với markup tĩnh do mình viết (icon, hình minh hoạ), tuyệt đối không truyền dữ liệu người dùng. */
+export function htmlEl(markup) {
+  const t = document.createElement('template');
+  t.innerHTML = markup.trim();
+  return t.content.firstElementChild;
 }
 
-export function logoImage(base, name) {
-  if (!base) return h('span', { class: 'logo-mark', 'aria-hidden': 'true' }, '🧶');
-  return h('img', {
-    class: 'logo-img', alt: name, src: `/images/brand/${base}-256.webp`,
-    srcset: `/images/brand/${base}-128.webp 128w, /images/brand/${base}-256.webp 256w, /images/brand/${base}-512.webp 512w`, sizes: '48px',
-  });
+export const ic = (name, cls, opts) => htmlEl(icon(name, cls, opts));
+
+// Màu nhãn badge: tên màu (lưu trong DB) -> class Tailwind. Viết đủ chuỗi để Tailwind quét được.
+const BADGE = {
+  red: 'bg-yarn-red text-white', orange: 'bg-yarn-orange text-white', green: 'bg-yarn-green text-white',
+  purple: 'bg-yarn-purple text-white', blue: 'bg-yarn-blue text-white', amber: 'bg-amber-600 text-white',
+};
+export const badgeClass = (key) => BADGE[key] ?? BADGE.red;
+
+/**
+ * Hình sản phẩm: ảnh thật (webp nhiều cỡ) nếu có, nếu không dùng hình SVG minh hoạ.
+ * cls: class cho thẻ <img>. illusCls: class điều chỉnh kích thước SVG (vd '[&>svg]:w-44').
+ */
+export function productVisual(p, { base = null, variantLabel = '', sizes = '(min-width:1024px) 25vw, 50vw', eager = false, cls = 'w-full h-full object-cover', illusCls = '' } = {}) {
+  const photo = base ?? p.images?.[0]?.base ?? null;
+  if (photo) {
+    const u = (s) => `/images/products/${photo}-${s}.webp`;
+    return h('img', { class: cls, src: u(480), srcset: `${u(160)} 160w, ${u(480)} 480w, ${u(960)} 960w`, sizes, alt: p.name, loading: eager ? 'eager' : 'lazy', decoding: 'async' });
+  }
+  const key = illustrationFor(p.illustration || 'clown-big', variantLabel);
+  const svg = ILLUSTRATIONS[key] ?? ILLUSTRATIONS['clown-big'];
+  const wrap = h('div', { class: `flex items-center justify-center w-full h-full ${illusCls}`, role: 'img', 'aria-label': p.name });
+  wrap.innerHTML = svg;
+  return wrap;
+}
+
+export function logoMark(settings) {
+  if (settings.logo) {
+    const b = settings.logo;
+    return h('img', { class: 'w-full h-full object-contain rounded-[14px] bg-cream-50 p-0.5', alt: settings.shopName, src: `/images/brand/${b}-128.webp`, srcset: `/images/brand/${b}-128.webp 128w, /images/brand/${b}-256.webp 256w`, sizes: '44px' });
+  }
+  return htmlEl('<svg class="w-5 h-5 sm:w-6 sm:h-6 text-yarn-orange" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 3.6c5 3 7 8.4 6 16.8"/><path d="M4.6 9c5.4-1 10.4 1 15.8 6"/><path d="M3.6 15c5-2 9.4-1 14.8 3"/><path d="M18 4l3-2"/></svg>');
 }
 
 export async function copyText(text) {

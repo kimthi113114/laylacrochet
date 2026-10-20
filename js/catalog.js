@@ -41,6 +41,37 @@ export function variantLabel(p, variant) {
   return variant.values.map((id, i) => p.options[i].values.find((v) => v.id === id)?.label ?? '').join(' / ');
 }
 
+/** Ảnh riêng của một giá trị tuỳ chọn (vd ảnh màu Đỏ) theo id, hoặc null. */
+const valueImage = (p, optIdx, valueId) => p.options[optIdx]?.values.find((v) => v.id === valueId)?.image ?? null;
+
+/**
+ * Ảnh nên hiện theo lựa chọn hiện tại: ảnh của giá trị vừa bấm (lastIdx) nếu có, rồi tới ảnh của
+ * bất kỳ giá trị đã chọn nào, rồi ảnh riêng của tổ hợp. null = dùng ảnh sản phẩm.
+ */
+export function selectionImage(p, selection, lastIdx = -1) {
+  if (lastIdx >= 0 && selection[lastIdx] !== undefined) {
+    const img = valueImage(p, lastIdx, selection[lastIdx]);
+    if (img) return img;
+  }
+  for (let i = 0; i < selection.length; i++) {
+    if (selection[i] === undefined) continue;
+    const img = valueImage(p, i, selection[i]);
+    if (img) return img;
+  }
+  return findVariant(p, selection)?.image ?? null;
+}
+
+/** Ảnh đại diện của một tổ hợp: ảnh tổ hợp > ảnh giá trị > ảnh đầu của sản phẩm. */
+export function variantImage(p, variant) {
+  if (!variant) return p.images[0]?.base ?? null;
+  if (variant.image) return variant.image;
+  for (let i = 0; i < variant.values.length; i++) {
+    const img = valueImage(p, i, variant.values[i]);
+    if (img) return img;
+  }
+  return p.images[0]?.base ?? null;
+}
+
 /** Chọn sẵn nếu mỗi nhóm chỉ có 1 giá trị. */
 export function defaultSelection(p) {
   return p.options.map((o) => (o.values.length === 1 ? o.values[0].id : undefined));
