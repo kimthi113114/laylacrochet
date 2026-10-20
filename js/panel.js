@@ -2,7 +2,7 @@
 import { h, fill, ic } from './dom.js';
 import { buildItem } from './cart.js';
 import { defaultSelection, findVariant, hasOptions, isAvailable, missingOptions, priceRange, selectionImage, variantLabel } from './catalog.js';
-import { money } from './format.js';
+import { discountPct, money } from './format.js';
 
 /**
  * @param p        sản phẩm
@@ -42,7 +42,9 @@ export function createPanel(p, { cart, openCart, toast, onChange = () => {} }) {
           h('span', { class: 'text-[11px] font-bold text-yarn-muted block' }, hasOpt ? 'Phiên bản đang chọn:' : 'Sản phẩm:'),
           h('span', { class: 'font-bold text-sm text-yarn-dark block truncate' }, hasOpt ? (label || 'Hãy chọn bên dưới') : p.name)),
         h('div', { class: 'text-right shrink-0' },
-          old && old > price && h('span', { class: 'text-xs text-yarn-muted line-through mr-1' }, money(old)),
+          old && old > price && h('div', { class: 'flex items-center justify-end gap-1.5 mb-0.5' },
+            h('span', { class: 'text-xs text-yarn-muted line-through' }, money(old)),
+            h('span', { class: 'text-[11px] font-extrabold text-white bg-yarn-red rounded-full px-2 py-0.5' }, `-${discountPct(price, old)}%`)),
           h('span', { class: 'font-serif text-2xl sm:text-3xl font-bold text-yarn-red' }, `${!variant && hasOpt && r.min !== r.max ? 'Từ ' : ''}${money(price)}`))),
 
       ...(hasOpt ? p.options.map((o, oi) => h('div', {},

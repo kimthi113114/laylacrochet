@@ -1,9 +1,9 @@
 import { fill, h, ic, badgeClass, productVisual } from './dom.js';
-import { loadData } from './data.js';
+import { loadData, productUrl } from './data.js';
 import { createCart } from './cart.js';
 import { createPanel } from './panel.js';
 import { card } from './card.js';
-import { listingUrl, pageOf } from './listing.js';
+import { filterProducts, listingUrl, pageOf } from './listing.js';
 import { mountLayout, toast } from './layout.js';
 
 const slugFromUrl = () => document.body.dataset.slug || new URLSearchParams(location.search).get('slug');
@@ -67,16 +67,31 @@ async function init() {
   drawVisual();
 
   const benefit = (name, cls, text) => h('div', { class: 'flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-amber-900/10 shrink-0' }, ic(name, `w-4 h-4 ${cls}`), h('span', { class: 'text-xs font-semibold text-yarn-dark' }, text));
+  // Sản phẩm trước / sau trong cùng danh mục (theo thứ tự danh sách), đi vòng tròn
+  const sibs = filterProducts(products, { cat: p.category || 'all' });
+  const at = sibs.findIndex((x) => x.slug === p.slug);
+  const prev = sibs.length > 1 ? sibs[(at - 1 + sibs.length) % sibs.length] : null;
+  const next = sibs.length > 1 ? sibs[(at + 1) % sibs.length] : null;
+  const arrow = (dir, target) => h('a', { href: productUrl(target.slug), rel: dir, 'aria-label': `${dir === 'prev' ? 'Sản phẩm trước' : 'Sản phẩm tiếp theo'}: ${target.name}`, title: target.name,
+    class: 'w-9 h-9 rounded-full bg-white border border-amber-900/15 text-yarn-dark flex items-center justify-center hover:bg-yarn-dark hover:text-white active:scale-90 transition-all shadow-sm' },
+    ic(dir === 'prev' ? 'chevron-left' : 'chevron-right', 'w-4 h-4'));
+  const pairCard = (dir, target) => h('a', { href: productUrl(target.slug), class: `group flex items-center gap-3 bg-white rounded-2xl border border-amber-900/10 p-2.5 sm:p-3 hover:shadow-lg transition-all ${dir === 'next' ? 'flex-row-reverse text-right' : ''}` },
+    h('div', { class: 'w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-xl overflow-hidden bg-cream-100' }, productVisual(target, { cls: 'w-full h-full object-cover', sizes: '64px' })),
+    h('div', { class: 'min-w-0 flex-1' },
+      h('span', { class: 'text-[10px] font-extrabold uppercase tracking-widest text-yarn-orange block' }, dir === 'prev' ? '‹ Sản phẩm trước' : 'Sản phẩm tiếp theo ›'),
+      h('span', { class: 'font-serif font-bold text-xs sm:text-sm text-yarn-dark line-clamp-2 leading-snug' }, target.name)));
   const related = products.filter((x) => x.slug !== p.slug && x.category === p.category).slice(0, 4);
 
   root.removeAttribute('aria-busy');
   fill(root,
     h('section', { class: 'pt-4 pb-10 sm:py-12' },
       h('div', { class: 'max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8' },
-        h('nav', { 'aria-label': 'Đường dẫn', class: 'text-[11px] sm:text-xs font-semibold text-yarn-muted mb-3 sm:mb-5 flex items-center gap-1.5 flex-wrap' },
+        h('div', { class: 'flex items-center justify-between gap-3 mb-3 sm:mb-5' },
+        h('nav', { 'aria-label': 'Đường dẫn', class: 'min-w-0 text-[11px] sm:text-xs font-semibold text-yarn-muted flex items-center gap-1.5 flex-wrap' },
           h('a', { href: '/', class: 'hover:text-yarn-orange' }, 'Trang chủ'), '›',
           cat && [h('a', { href: `${listingUrl({ cat: cat.slug, page: pageOf(products, p.slug, cat.slug) })}#sp-${p.slug}`, class: 'hover:text-yarn-orange', title: `Xem ${cat.name} (đúng trang có sản phẩm này)` }, cat.name), '›'],
           h('span', { class: 'text-yarn-dark truncate' }, p.name)),
+          prev && h('div', { class: 'flex gap-2 shrink-0', role: 'group', 'aria-label': 'Chuyển sản phẩm' }, arrow('prev', prev), arrow('next', next))),
         h('div', { class: 'grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start' },
           h('div', { class: 'lg:col-span-6 lg:sticky lg:top-24' }, stage, thumbs),
           h('div', { class: 'lg:col-span-6 space-y-4 sm:space-y-6' },
@@ -87,6 +102,8 @@ async function init() {
             panel.el,
             h('div', { class: 'flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1' },
               benefit('smartphone', 'text-yarn-green', 'Vừa mọi dòng Pro Max'), benefit('shield-check', 'text-yarn-orange', 'Len dày chống sốc'), benefit('gift', 'text-yarn-red', 'Quà tặng ý nghĩa')))))),
+    prev && h('section', { class: 'pb-8 sm:pb-12', 'aria-label': 'Sản phẩm khác trong danh mục' },
+      h('div', { class: 'max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4' }, pairCard('prev', prev), pairCard('next', next))),
     related.length > 0 && h('section', { class: 'py-10 sm:py-14 bg-cream-100/70 border-t border-amber-900/5' },
       h('div', { class: 'max-w-7xl mx-auto px-3 sm:px-6 lg:px-8' },
         h('h2', { class: 'font-serif text-xl sm:text-3xl font-bold text-yarn-dark mb-5 sm:mb-8' }, 'Có Thể Bạn Cũng Thích'),

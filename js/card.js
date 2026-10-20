@@ -2,7 +2,7 @@ import { h, ic, badgeClass, productVisual } from './dom.js';
 import { productUrl } from './data.js';
 import { buildItem } from './cart.js';
 import { hasOptions, priceRange } from './catalog.js';
-import { money } from './format.js';
+import { discountPct, money } from './format.js';
 import { toast } from './layout.js';
 
 // Thẻ sản phẩm trong lưới (kiểu dáng y bản thiết kế đầu)
@@ -25,6 +25,7 @@ export function card(p, cart) {
     h('div', {},
       h('a', { href, onclick: remember, tabindex: '-1', 'aria-hidden': 'true', class: 'block relative rounded-xl sm:rounded-2xl bg-gradient-to-b from-cream-100 to-cream-200/60 p-2 sm:p-4 mb-2.5 overflow-hidden h-44 sm:h-60' },
         p.badge && h('span', { class: `absolute top-2 left-2 ${badgeClass(p.badgeColor)} text-[9px] sm:text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full shadow-sm z-10` }, p.badge),
+        p.sale && discountPct(r.min, r.oldPrice) > 0 && h('span', { class: 'absolute top-2 right-2 bg-yarn-red text-white text-[10px] sm:text-xs font-extrabold px-2 py-0.5 rounded-full shadow-sm z-10' }, `-${discountPct(r.min, r.oldPrice)}%`),
         r.soldOut && h('span', { class: 'absolute bottom-2 inset-x-2 bg-yarn-dark/85 text-white text-[10px] font-bold text-center py-1 rounded-lg z-10' }, 'Tạm hết hàng'),
         productVisual(p, { cls: 'w-full h-full object-cover rounded-lg', illusCls: '[&>svg]:group-hover:scale-105 [&>svg]:transition-transform' })),
       h('h3', { class: 'font-serif font-bold text-xs sm:text-base text-yarn-dark line-clamp-2 leading-snug' },

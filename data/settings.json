@@ -6,5 +6,6 @@
   "freeshipThreshold": 500000,
   "shippingFee": 30000,
   "logo": "e031b8b84b7a6cc8",
-  "favicon": "6b6ffb635fb1abd5"
+  "favicon": "6b6ffb635fb1abd5",
+  "discount": null
 }

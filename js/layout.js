@@ -2,6 +2,7 @@ import { h, ic, brandMark } from './dom.js';
 import { messengerUrl, zaloUrl } from './order.js';
 import { createDrawer } from './cart-ui.js';
 import { money } from './format.js';
+import { activeDiscount } from './pricing.js';
 import { listingUrl } from './listing.js';
 
 let toastTimer;
@@ -27,9 +28,12 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
   const anchor = (id) => (home ? `#${id}` : `/#${id}`);
 
   // ----- thanh thông báo -----
+  // Đang có giảm giá toàn shop thì thông báo ưu tiên chương trình đó (kèm hạn nếu có)
+  const sale = activeDiscount(settings.discount);
+  const saleText = sale && `🔥 ${sale.label || 'Đang giảm giá'}: giảm ${sale.type === 'percent' ? `${sale.value}%` : money(sale.value)} toàn shop${sale.ends ? ` · đến ${new Date(sale.ends).toLocaleDateString('vi-VN')}` : ''}`;
   const announce = h('div', { class: 'bg-yarn-dark text-cream-100 text-[11px] sm:text-xs py-2 px-3 text-center font-medium flex items-center justify-center gap-1.5' },
     h('span', { class: 'inline-block w-2 h-2 rounded-full bg-yarn-yellow animate-ping shrink-0' }),
-    h('span', { class: 'truncate' }, settings.freeshipThreshold > 0 ? `🧶 Móc Tay 100% — Freeship Đơn Từ ${money(settings.freeshipThreshold)}!` : '🧶 Móc Tay 100% — Freeship Mọi Đơn Hàng!'));
+    h('span', { class: 'truncate' }, saleText || (settings.freeshipThreshold > 0 ? `🧶 Móc Tay 100% — Freeship Đơn Từ ${money(settings.freeshipThreshold)}!` : '🧶 Móc Tay 100% — Freeship Mọi Đơn Hàng!')));
 
   // ----- header -----
   const badge = h('span', { class: 'bg-yarn-orange text-white font-extrabold text-[11px] min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center' });
