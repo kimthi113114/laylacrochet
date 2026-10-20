@@ -99,7 +99,7 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
 
   // ----- thanh đặt hàng cố định dưới cùng (chỉ điện thoại) -----
   // Nút về đầu trang trên thanh dưới: cùng hiệu ứng "phóng" với nút ở footer
-  const topQuick = h('button', { type: 'button', 'aria-label': 'Về đầu trang', class: 'to-top flex flex-col items-center justify-center px-3 py-1 rounded-xl active:bg-amber-50 text-yarn-dark',
+  const topQuick = h('button', { type: 'button', 'aria-label': 'Về đầu trang', class: 'to-top flex flex-col items-center justify-center px-1.5 py-1 rounded-xl active:bg-amber-50 text-yarn-dark',
     onclick: (e) => { const btn = e.currentTarget; btn.classList.remove('to-top-go'); void btn.offsetWidth; btn.classList.add('to-top-go'); scrollTo({ top: 0, behavior: 'smooth' }); } },
     h('span', { class: 'to-top-ring w-6 h-6 rounded-full bg-yarn-dark text-white flex items-center justify-center' }, ic('chevron-up', 'to-top-arrow w-3.5 h-3.5')),
     h('span', { class: 'text-[10px] font-bold mt-0.5' }, 'Lên đầu'));
@@ -107,7 +107,7 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
   const mTotal = h('div', { class: 'font-serif font-bold text-sm text-yarn-yellow leading-tight mt-0.5' });
   // Liên hệ: cuộn mượt xuống cuối trang, nơi footer có nút Zalo / Messenger
   const contactQuick = h('button', { type: 'button', onclick: () => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }),
-    class: 'flex flex-col items-center justify-center px-3 py-1 rounded-xl active:bg-amber-50 text-yarn-dark' },
+    class: 'flex flex-col items-center justify-center px-1.5 py-1 rounded-xl active:bg-amber-50 text-yarn-dark' },
     h('div', { class: 'w-6 h-6 rounded-full bg-yarn-orange text-white flex items-center justify-center' }, ic('message-circle', 'w-3.5 h-3.5', { fill: true })),
     h('span', { class: 'text-[10px] font-bold mt-0.5' }, 'Liên hệ'));
   const bottomBar = h('div', { class: 'md:hidden fixed bottom-0 inset-x-0 z-40 glass-bottom-nav border-t border-amber-900/10 px-3 py-2 pb-safe' },
@@ -117,7 +117,7 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
         h('div', { class: 'flex items-center gap-2' },
           h('div', { class: 'relative bg-yarn-orange w-8 h-8 rounded-xl flex items-center justify-center' }, ic('shopping-bag', 'w-4 h-4 text-white'), mBadge),
           h('div', { class: 'text-left' }, h('div', { class: 'text-[10px] text-cream-200 leading-none' }, 'Tổng giỏ hàng'), mTotal)),
-        h('div', { class: 'bg-yarn-orange px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1' }, h('span', {}, 'Đặt Hàng'), ic('chevron-up', 'w-3.5 h-3.5')))));
+        h('div', { class: 'bg-yarn-orange px-2.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1 whitespace-nowrap' }, h('span', {}, 'Đặt hàng'), ic('chevron-up', 'w-3.5 h-3.5 hidden min-[400px]:block')))));
 
   const sync = () => {
     badge.textContent = cart.count; badge.hidden = cart.count === 0;
