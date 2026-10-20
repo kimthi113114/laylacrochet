@@ -1,0 +1,166 @@
+{
+  "categories": [
+    {
+      "slug": "clown",
+      "name": "Chú Hề Pierrot"
+    },
+    {
+      "slug": "floral",
+      "name": "Hoa Len"
+    },
+    {
+      "slug": "cute",
+      "name": "Thú Cưng Cute"
+    }
+  ],
+  "products": [
+    {
+      "slug": "tui-chu-he-pierrot",
+      "name": "Túi Chú Hề Pierrot",
+      "desc": "Mẫu signature tóc xù 7 màu, yếm đỏ cúc gỗ, túi bụng vàng. Đựng vừa mọi dòng máy Pro Max.",
+      "price": 285000,
+      "oldPrice": 390000,
+      "badge": "Best Seller",
+      "category": "clown",
+      "options": [
+        {
+          "name": "Loại túi",
+          "values": [
+            {
+              "id": 1,
+              "label": "Full Tay Chân",
+              "swatch": null
+            },
+            {
+              "id": 2,
+              "label": "Mini",
+              "swatch": null
+            }
+          ]
+        },
+        {
+          "name": "Màu",
+          "values": [
+            {
+              "id": 3,
+              "label": "Truyền thống",
+              "swatch": "#E85D3A"
+            },
+            {
+              "id": 4,
+              "label": "Pastel",
+              "swatch": "#F4B6D2"
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "id": 1,
+          "values": [
+            1,
+            3
+          ],
+          "price": 345000,
+          "oldPrice": 390000,
+          "image": null,
+          "inStock": true
+        },
+        {
+          "id": 2,
+          "values": [
+            1,
+            4
+          ],
+          "price": 350000,
+          "oldPrice": 390000,
+          "image": null,
+          "inStock": true
+        },
+        {
+          "id": 3,
+          "values": [
+            2,
+            3
+          ],
+          "price": 285000,
+          "oldPrice": 320000,
+          "image": null,
+          "inStock": true
+        },
+        {
+          "id": 4,
+          "values": [
+            2,
+            4
+          ],
+          "price": 285000,
+          "oldPrice": 320000,
+          "image": null,
+          "inStock": true
+        }
+      ],
+      "images": []
+    },
+    {
+      "slug": "combo-doi-chu-he",
+      "name": "Combo Đôi Chú Hề (1 Lớn + 1 Mini)",
+      "desc": "Set đôi hoàn hảo! Đựng vừa điện thoại, son phấn, tai nghe và phụ kiện.",
+      "price": 590000,
+      "oldPrice": 630000,
+      "badge": "-40K + Freeship",
+      "category": "clown",
+      "options": [],
+      "variants": [],
+      "images": []
+    },
+    {
+      "slug": "tui-hoa-cuc-vintage",
+      "name": "Túi Hoa Cúc Hoạ Mi 3D Vintage",
+      "desc": "Nền len kem phối hoa cúc trắng nhụy vàng đan nổi, có nắp gập khuy gỗ mộc mạc.",
+      "price": 245000,
+      "oldPrice": 280000,
+      "badge": "Vintage",
+      "category": "floral",
+      "options": [],
+      "variants": [],
+      "images": []
+    },
+    {
+      "slug": "tui-vuon-hoa-tulip",
+      "name": "Túi Móc Len Vườn Hoa Tulip Hồng",
+      "desc": "Hoạ tiết hoa Tulip đan xen lá xanh tươi mát, dây đeo xoắn thừng êm vai chắc chắn.",
+      "price": 260000,
+      "oldPrice": 295000,
+      "badge": null,
+      "category": "floral",
+      "options": [],
+      "variants": [],
+      "images": []
+    },
+    {
+      "slug": "tui-gau-nau-om-hu-mat",
+      "name": "Túi Gấu Nâu Ôm Hũ Mật",
+      "desc": "Tai gấu tròn xoe đính kèm túi nhỏ phía trước đựng tai nghe AirPods hoặc thẻ xe.",
+      "price": 295000,
+      "oldPrice": 330000,
+      "badge": "Siêu êm",
+      "category": "cute",
+      "options": [],
+      "variants": [],
+      "images": []
+    },
+    {
+      "slug": "tui-ech-xanh-deo-cheo",
+      "name": "Túi Ếch Xanh Mắt Lồi Đeo Chéo",
+      "desc": "Màu xanh bơ trendy cùng đôi mắt 3D ngộ nghĩnh, miệng túi có nút gài an toàn.",
+      "price": 275000,
+      "oldPrice": 310000,
+      "badge": null,
+      "category": "cute",
+      "options": [],
+      "variants": [],
+      "images": []
+    }
+  ]
+}
