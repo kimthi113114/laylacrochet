@@ -98,6 +98,11 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
         toTop)));
 
   // ----- thanh đặt hàng cố định dưới cùng (chỉ điện thoại) -----
+  // Nút về đầu trang trên thanh dưới: cùng hiệu ứng "phóng" với nút ở footer
+  const topQuick = h('button', { type: 'button', 'aria-label': 'Về đầu trang', class: 'to-top flex flex-col items-center justify-center px-3 py-1 rounded-xl active:bg-amber-50 text-yarn-dark',
+    onclick: (e) => { const btn = e.currentTarget; btn.classList.remove('to-top-go'); void btn.offsetWidth; btn.classList.add('to-top-go'); scrollTo({ top: 0, behavior: 'smooth' }); } },
+    h('span', { class: 'to-top-ring w-6 h-6 rounded-full bg-yarn-dark text-white flex items-center justify-center' }, ic('chevron-up', 'to-top-arrow w-3.5 h-3.5')),
+    h('span', { class: 'text-[10px] font-bold mt-0.5' }, 'Lên đầu'));
   const mBadge = h('span', { class: 'absolute -top-1.5 -right-1.5 bg-yarn-yellow text-yarn-dark font-extrabold text-[10px] w-4 h-4 rounded-full flex items-center justify-center' });
   const mTotal = h('div', { class: 'font-serif font-bold text-sm text-yarn-yellow leading-tight mt-0.5' });
   // Liên hệ: cuộn mượt xuống cuối trang, nơi footer có nút Zalo / Messenger
@@ -107,7 +112,7 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
     h('span', { class: 'text-[10px] font-bold mt-0.5' }, 'Liên hệ'));
   const bottomBar = h('div', { class: 'md:hidden fixed bottom-0 inset-x-0 z-40 glass-bottom-nav border-t border-amber-900/10 px-3 py-2 pb-safe' },
     h('div', { class: 'flex items-center justify-between gap-2 max-w-md mx-auto' },
-      contactQuick,
+      contactQuick, topQuick,
       h('button', { type: 'button', onclick: openCart, class: 'flex-1 bg-gradient-to-r from-yarn-dark to-[#3B2E28] active:scale-95 text-white p-2.5 rounded-2xl shadow-lg flex items-center justify-between transition-all' },
         h('div', { class: 'flex items-center gap-2' },
           h('div', { class: 'relative bg-yarn-orange w-8 h-8 rounded-xl flex items-center justify-center' }, ic('shopping-bag', 'w-4 h-4 text-white'), mBadge),
