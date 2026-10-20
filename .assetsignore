@@ -1,0 +1,11 @@
+# Cloudflare (wrangler) bỏ qua các file này khi đưa web lên: chỉ HTML/CSS/JS/dữ liệu/ảnh được phục vụ.
+.git
+.gitignore
+.gitattributes
+.assetsignore
+.github
+node_modules
+*.md
+wrangler.toml
+wrangler.json
+wrangler.jsonc
