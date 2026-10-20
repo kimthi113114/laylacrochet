@@ -33,6 +33,9 @@ async function init() {
   document.title = `${p.name} – ${settings.shopName}`;
   const cat = categories.find((c) => c.slug === p.category);
 
+  // Thư viện ảnh: ảnh sản phẩm + ảnh riêng của từng lựa chọn (màu, loại...), bỏ trùng, để khách thấy đủ mọi ảnh
+  const gallery = [...new Set([...p.images.map((im) => im.base),
+    ...p.options.flatMap((o) => o.values.map((v) => v.image)), ...p.variants.map((v) => v.image)].filter(Boolean))];
   let galleryIdx = 0;
   let preferVariantImg = false; // true sau khi khách đổi tuỳ chọn; false sau khi bấm ảnh nhỏ
   const stage = h('div', { class: 'relative rounded-3xl bg-gradient-to-b from-cream-100 to-cream-200/60 border border-amber-900/10 aspect-square flex items-center justify-center p-4 sm:p-6 overflow-hidden' });
@@ -40,16 +43,20 @@ async function init() {
 
   let current = { variant: null, label: '' };
   function drawVisual() {
-    const photo = (preferVariantImg && current.image) || p.images[galleryIdx]?.base || current.image || null;
+    const photo = (preferVariantImg && current.image) || gallery[galleryIdx] || current.image || null;
+    const activeBase = preferVariantImg && current.image ? current.image : gallery[galleryIdx];
     fill(stage,
       p.badge && h('span', { class: `absolute top-3 left-3 ${badgeClass(p.badgeColor)} text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full shadow-sm z-10` }, p.badge),
       productVisual(p, { base: photo, variantLabel: current.label, eager: true, sizes: '(min-width:1024px) 50vw, 100vw',
         cls: 'w-full h-full object-cover rounded-2xl', illusCls: '[&>svg]:w-64 [&>svg]:h-72 sm:[&>svg]:w-80 sm:[&>svg]:h-96 [&>svg]:max-w-none animate-float' }));
-    fill(thumbs, p.images.length > 1 && p.images.map((im, i) => h('button', {
-      type: 'button', 'aria-label': `Xem ảnh ${i + 1}`, 'aria-pressed': i === galleryIdx ? 'true' : 'false',
-      class: `w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-xl overflow-hidden border-2 ${i === galleryIdx ? 'border-yarn-orange' : 'border-transparent opacity-80'}`,
+    fill(thumbs, gallery.length > 1 && gallery.map((base, i) => h('button', {
+      type: 'button', 'aria-label': `Xem ảnh ${i + 1}`, 'aria-pressed': base === activeBase ? 'true' : 'false',
+      class: `w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-xl overflow-hidden border-2 ${base === activeBase ? 'border-yarn-orange' : 'border-transparent opacity-80'}`,
       onclick: () => { galleryIdx = i; preferVariantImg = false; drawVisual(); },
-    }, productVisual(p, { base: im.base, sizes: '80px' }))));
+    }, productVisual(p, { base, sizes: '80px' }))));
+    // hàng ảnh nhỏ cuộn ngang: đưa ảnh đang chọn vào tầm nhìn (không làm trang nhảy)
+    const on = thumbs.querySelector('[aria-pressed=true]');
+    if (on) thumbs.scrollTo({ left: on.offsetLeft - (thumbs.clientWidth - on.offsetWidth) / 2, behavior: 'smooth' });
   }
 
   const panel = createPanel(p, {

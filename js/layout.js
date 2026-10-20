@@ -77,7 +77,7 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
         // Thương hiệu
         h('div', { class: 'md:col-span-5 space-y-4' },
           h('a', { href: '/', class: 'inline-flex items-center gap-3', 'aria-label': `${settings.shopName} - trang chủ` },
-            brandMark(settings, 'h-16 sm:h-20 brightness-125'),
+            h('span', { class: 'shrink-0 rounded-full bg-cream-50 p-2 shadow-lg shadow-black/20' }, brandMark(settings, 'h-14 sm:h-[68px]')),
             h('div', {}, h('p', { class: 'font-serif text-xl sm:text-2xl font-bold text-white leading-none' }, settings.shopName),
               h('p', { class: 'text-[10px] uppercase tracking-widest text-yarn-orange font-bold mt-1' }, settings.slogan || 'Handmade Bags'))),
           h('p', { class: 'text-sm text-cream-200/70 leading-relaxed max-w-sm' }, 'Túi và đồ len móc thủ công, từng mũi len được hoàn thiện bằng tay. Chọn mẫu, thêm vào giỏ và chốt đơn nhanh qua Zalo hoặc Messenger.'),
