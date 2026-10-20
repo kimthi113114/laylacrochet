@@ -54,12 +54,19 @@ export function productVisual(p, { base = null, variantLabel = '', sizes = '(min
   return wrap;
 }
 
-export function logoMark(settings) {
+/**
+ * Biểu tượng thương hiệu. Có logo: hiện thẳng logo (nền trong suốt), không khung viền, kích thước theo `size`.
+ * Chưa có logo: hình cuộn len trong ô gradient như thiết kế đầu.
+ */
+export function brandMark(settings, size = 'h-12 sm:h-16') {
   if (settings.logo) {
     const b = settings.logo;
-    return h('img', { class: 'w-full h-full object-contain rounded-[14px] bg-cream-50 p-0.5', alt: settings.shopName, src: `/images/brand/${b}-128.webp`, srcset: `/images/brand/${b}-128.webp 128w, /images/brand/${b}-256.webp 256w`, sizes: '44px' });
+    return h('img', { class: `${size} w-auto shrink-0 object-contain`, alt: settings.shopName, src: `/images/brand/${b}-256.webp`,
+      srcset: `/images/brand/${b}-128.webp 128w, /images/brand/${b}-256.webp 256w, /images/brand/${b}-512.webp 512w`, sizes: '80px', decoding: 'async' });
   }
-  return htmlEl('<svg class="w-5 h-5 sm:w-6 sm:h-6 text-yarn-orange" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 3.6c5 3 7 8.4 6 16.8"/><path d="M4.6 9c5.4-1 10.4 1 15.8 6"/><path d="M3.6 15c5-2 9.4-1 14.8 3"/><path d="M18 4l3-2"/></svg>');
+  return h('div', { class: 'w-11 h-11 sm:w-12 sm:h-12 shrink-0 rounded-2xl bg-gradient-to-br from-yarn-orange via-yarn-red to-yarn-yellow p-0.5 shadow-sm' },
+    h('div', { class: 'w-full h-full bg-cream-50 rounded-[14px] flex items-center justify-center' },
+      htmlEl('<svg class="w-6 h-6 text-yarn-orange" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 3.6c5 3 7 8.4 6 16.8"/><path d="M4.6 9c5.4-1 10.4 1 15.8 6"/><path d="M3.6 15c5-2 9.4-1 14.8 3"/><path d="M18 4l3-2"/></svg>')));
 }
 
 export async function copyText(text) {

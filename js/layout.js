@@ -1,4 +1,4 @@
-import { h, ic, logoMark } from './dom.js';
+import { h, ic, brandMark } from './dom.js';
 import { messengerUrl, zaloUrl } from './order.js';
 import { createDrawer } from './cart-ui.js';
 import { money } from './format.js';
@@ -39,8 +39,7 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
   const header = h('header', { class: 'sticky top-0 z-30 glass-header border-b border-amber-900/10' },
     h('div', { class: 'max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-14 sm:h-20 flex items-center justify-between gap-2' },
       h('a', { href: '/', class: 'flex items-center gap-2.5 group shrink-0', 'aria-label': `${settings.shopName} - trang chủ` },
-        h('div', { class: 'w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-yarn-orange via-yarn-red to-yarn-yellow p-0.5 shadow-sm' },
-          h('div', { class: 'w-full h-full bg-cream-50 rounded-[14px] flex items-center justify-center overflow-hidden' }, logoMark(settings))),
+        brandMark(settings, 'h-11 sm:h-16'),
         h('div', {},
           h('span', { class: 'font-serif text-lg sm:text-2xl font-bold tracking-tight text-yarn-dark block leading-none' }, settings.shopName),
           h('span', { class: 'text-[9px] sm:text-[11px] uppercase tracking-widest text-yarn-orange font-bold block mt-0.5' }, settings.slogan || 'Handmade Bags'))),
@@ -68,9 +67,8 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
         // Thương hiệu
         h('div', { class: 'md:col-span-5 space-y-4' },
           h('a', { href: '/', class: 'inline-flex items-center gap-3', 'aria-label': `${settings.shopName} - trang chủ` },
-            h('div', { class: 'w-11 h-11 rounded-2xl bg-gradient-to-br from-yarn-orange via-yarn-red to-yarn-yellow p-0.5' },
-              h('div', { class: 'w-full h-full bg-cream-50 rounded-[14px] flex items-center justify-center overflow-hidden' }, logoMark(settings))),
-            h('div', {}, h('p', { class: 'font-serif text-xl font-bold text-white leading-none' }, settings.shopName),
+            brandMark(settings, 'h-16 sm:h-20 brightness-125'),
+            h('div', {}, h('p', { class: 'font-serif text-xl sm:text-2xl font-bold text-white leading-none' }, settings.shopName),
               h('p', { class: 'text-[10px] uppercase tracking-widest text-yarn-orange font-bold mt-1' }, settings.slogan || 'Handmade Bags'))),
           h('p', { class: 'text-sm text-cream-200/70 leading-relaxed max-w-sm' }, 'Túi và đồ len móc thủ công, từng mũi len được hoàn thiện bằng tay. Chọn mẫu, thêm vào giỏ và chốt đơn nhanh qua Zalo hoặc Messenger.'),
           h('div', { class: 'flex gap-2.5 max-w-sm' }, contactBtn(zalo, 'Chat Zalo', 'bg-[#0068FF]'), contactBtn(mess, 'Messenger', 'bg-gradient-to-r from-[#00B2FF] to-[#006AFF]'))),
