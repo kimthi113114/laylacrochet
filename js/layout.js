@@ -120,8 +120,12 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
           h('div', { class: 'relative bg-yarn-orange w-8 h-8 rounded-xl flex items-center justify-center' }, ic('shopping-bag', 'w-4 h-4 text-white'), mBadge),
           h('div', { class: 'text-left' }, h('div', { class: 'text-[10px] text-cream-200 leading-none' }, 'Tổng giỏ hàng'), mTotal)),
         h('div', { class: 'bg-yarn-orange px-2.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1 whitespace-nowrap' }, h('span', {}, 'Đặt hàng'), ic('chevron-up', 'w-3.5 h-3.5 hidden min-[400px]:block')));
+  // Giỏ trống: nút Liên hệ giãn rộng cho cân đối với nút Quay về; có hàng thì thu gọn nhường chỗ cho nút giỏ
+  const scrollToContact = () => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+  const contactWide = h('button', { type: 'button', onclick: scrollToContact, class: 'flex-1 bg-gradient-to-r from-yarn-orange to-yarn-red active:scale-95 text-white py-3 rounded-2xl shadow-lg flex items-center justify-center gap-2 text-sm font-extrabold transition-all' },
+    ic('message-circle', 'w-4 h-4', { fill: true }), 'Liên hệ shop');
   const bottomBar = h('div', { class: 'md:hidden fixed bottom-0 inset-x-0 z-40 glass-bottom-nav border-t border-amber-900/10 px-3 py-2 pb-safe' },
-    h('div', { class: 'flex items-center justify-start gap-2 max-w-md mx-auto' }, backQuick, contactQuick, mCart));
+    h('div', { class: 'flex items-center justify-start gap-2 max-w-md mx-auto' }, backQuick, contactQuick, contactWide, mCart));
 
   const sync = () => {
     badge.textContent = cart.count; badge.hidden = cart.count === 0;
@@ -129,6 +133,8 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
     mTotal.textContent = money(cart.subtotal);
     // Giỏ trống: không hiện nút giỏ ở thanh dưới; trang chủ thì ẩn cả thanh (footer và header đã có liên hệ, giỏ)
     mCart.hidden = cart.count === 0;
+    contactWide.hidden = cart.count > 0;
+    contactQuick.hidden = cart.count === 0;
     bottomBar.hidden = home && cart.count === 0;
     cartBtn.setAttribute('aria-label', `Giỏ hàng, ${cart.count} sản phẩm`);
   };
