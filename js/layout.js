@@ -19,7 +19,7 @@ export function toast(msg) {
 }
 
 /** Dựng thanh thông báo, header, thanh đặt hàng dưới (mobile), footer, giỏ hàng; trả về {openCart}. */
-export function mountLayout({ settings, cart, products, categories = [], home = false }) {
+export function mountLayout({ settings, cart, products, categories = [], home = false, back = null }) {
   const zalo = zaloUrl(settings.zaloPhone);
   const mess = messengerUrl(settings.fbUsername);
   const drawer = createDrawer({ cart, settings, products });
@@ -98,11 +98,16 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
         toTop)));
 
   // ----- thanh đặt hàng cố định dưới cùng (chỉ điện thoại) -----
-  // Nút về đầu trang trên thanh dưới: cùng hiệu ứng "phóng" với nút ở footer
-  const topQuick = h('button', { type: 'button', 'aria-label': 'Về đầu trang', class: 'to-top flex flex-col items-center justify-center px-1.5 py-1 rounded-xl active:bg-amber-50 text-yarn-dark',
-    onclick: (e) => { const btn = e.currentTarget; btn.classList.remove('to-top-go'); void btn.offsetWidth; btn.classList.add('to-top-go'); scrollTo({ top: 0, behavior: 'smooth' }); } },
-    h('span', { class: 'to-top-ring w-6 h-6 rounded-full bg-yarn-dark text-white flex items-center justify-center' }, ic('chevron-up', 'to-top-arrow w-3.5 h-3.5')),
-    h('span', { class: 'text-[10px] font-bold mt-0.5' }, 'Lên đầu'));
+  // Trang chi tiết: nút Quay về ở ngoài cùng bên trái (về đúng trang danh sách chứa sản phẩm)
+  const backQuick = back && h('a', { href: back, 'aria-label': 'Quay về danh sách sản phẩm', class: 'to-back flex flex-col items-center justify-center px-1.5 py-1 rounded-xl active:bg-amber-50 text-yarn-dark',
+    onclick: (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+      e.preventDefault();
+      // Có lịch sử cùng trang web thì lùi lại (giữ nguyên vị trí cuộn), không thì đi tới danh sách
+      if (history.length > 1 && document.referrer.startsWith(location.origin)) history.back(); else location.href = back;
+    } },
+    h('span', { class: 'to-back-icon w-6 h-6 rounded-full bg-yarn-dark text-white flex items-center justify-center' }, ic('arrow-left', 'w-3.5 h-3.5')),
+    h('span', { class: 'text-[10px] font-bold mt-0.5' }, 'Quay về'));
   const mBadge = h('span', { class: 'absolute -top-1.5 -right-1.5 bg-yarn-yellow text-yarn-dark font-extrabold text-[10px] w-4 h-4 rounded-full flex items-center justify-center' });
   const mTotal = h('div', { class: 'font-serif font-bold text-sm text-yarn-yellow leading-tight mt-0.5' });
   // Liên hệ: cuộn mượt xuống cuối trang, nơi footer có nút Zalo / Messenger
@@ -110,19 +115,21 @@ export function mountLayout({ settings, cart, products, categories = [], home = 
     class: 'flex flex-col items-center justify-center px-1.5 py-1 rounded-xl active:bg-amber-50 text-yarn-dark' },
     h('div', { class: 'w-6 h-6 rounded-full bg-yarn-orange text-white flex items-center justify-center' }, ic('message-circle', 'w-3.5 h-3.5', { fill: true })),
     h('span', { class: 'text-[10px] font-bold mt-0.5' }, 'Liên hệ'));
-  const bottomBar = h('div', { class: 'md:hidden fixed bottom-0 inset-x-0 z-40 glass-bottom-nav border-t border-amber-900/10 px-3 py-2 pb-safe' },
-    h('div', { class: 'flex items-center justify-between gap-2 max-w-md mx-auto' },
-      contactQuick, topQuick,
-      h('button', { type: 'button', onclick: openCart, class: 'flex-1 bg-gradient-to-r from-yarn-dark to-[#3B2E28] active:scale-95 text-white p-2.5 rounded-2xl shadow-lg flex items-center justify-between transition-all' },
+  const mCart = h('button', { type: 'button', onclick: openCart, class: 'flex-1 bg-gradient-to-r from-yarn-dark to-[#3B2E28] active:scale-95 text-white p-2.5 rounded-2xl shadow-lg flex items-center justify-between transition-all' },
         h('div', { class: 'flex items-center gap-2' },
           h('div', { class: 'relative bg-yarn-orange w-8 h-8 rounded-xl flex items-center justify-center' }, ic('shopping-bag', 'w-4 h-4 text-white'), mBadge),
           h('div', { class: 'text-left' }, h('div', { class: 'text-[10px] text-cream-200 leading-none' }, 'Tổng giỏ hàng'), mTotal)),
-        h('div', { class: 'bg-yarn-orange px-2.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1 whitespace-nowrap' }, h('span', {}, 'Đặt hàng'), ic('chevron-up', 'w-3.5 h-3.5 hidden min-[400px]:block')))));
+        h('div', { class: 'bg-yarn-orange px-2.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1 whitespace-nowrap' }, h('span', {}, 'Đặt hàng'), ic('chevron-up', 'w-3.5 h-3.5 hidden min-[400px]:block')));
+  const bottomBar = h('div', { class: 'md:hidden fixed bottom-0 inset-x-0 z-40 glass-bottom-nav border-t border-amber-900/10 px-3 py-2 pb-safe' },
+    h('div', { class: 'flex items-center justify-start gap-2 max-w-md mx-auto' }, backQuick, contactQuick, mCart));
 
   const sync = () => {
     badge.textContent = cart.count; badge.hidden = cart.count === 0;
     mBadge.textContent = cart.count; mBadge.hidden = cart.count === 0;
     mTotal.textContent = money(cart.subtotal);
+    // Giỏ trống: không hiện nút giỏ ở thanh dưới; trang chủ thì ẩn cả thanh (footer và header đã có liên hệ, giỏ)
+    mCart.hidden = cart.count === 0;
+    bottomBar.hidden = home && cart.count === 0;
     cartBtn.setAttribute('aria-label', `Giỏ hàng, ${cart.count} sản phẩm`);
   };
   cart.subscribe(sync);

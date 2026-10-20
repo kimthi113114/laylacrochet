@@ -26,9 +26,9 @@ async function init() {
   const { products, categories, settings } = data;
   const cart = createCart(localStorage);
   for (const n of cart.reconcile(products)) toast(n);
-  const { openCart } = mountLayout({ settings, cart, products, categories });
-
   const p = products.find((x) => x.slug === slugFromUrl());
+  const backHref = p ? `${listingUrl({ cat: p.category, page: pageOf(products, p.slug, p.category) })}#sp-${p.slug}` : '/';
+  const { openCart } = mountLayout({ settings, cart, products, categories, back: backHref });
   if (!p) return notFound(root);
   document.title = `${p.name} – ${settings.shopName}`;
   const cat = categories.find((c) => c.slug === p.category);
