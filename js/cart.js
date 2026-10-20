@@ -16,16 +16,31 @@ export function createCart(storage = null) {
   };
   const emit = () => { save(); listeners.forEach((fn) => fn(items)); };
 
-  try {
-    const raw = JSON.parse(storage?.getItem(KEY) ?? '[]');
-    if (Array.isArray(raw)) items = raw.filter((i) => i && i.key && Number.isInteger(i.qty) && i.qty > 0 && Number.isFinite(i.price));
-  } catch { items = []; }
+  const readStored = () => {
+    try {
+      const raw = JSON.parse(storage?.getItem(KEY) ?? '[]');
+      return Array.isArray(raw) ? raw.filter((i) => i && i.key && Number.isInteger(i.qty) && i.qty > 0 && Number.isFinite(i.price)) : [];
+    } catch { return []; }
+  };
+  items = readStored();
 
   return {
     get items() { return items; },
     get count() { return items.reduce((n, i) => n + i.qty, 0); },
     get subtotal() { return items.reduce((n, i) => n + i.price * i.qty, 0); },
     subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
+
+    /**
+     * Đọc lại giỏ từ bộ nhớ trình duyệt rồi báo cho giao diện nếu có thay đổi.
+     * Cần khi trang được khôi phục từ bộ nhớ đệm (nút Quay lại trên điện thoại) hoặc giỏ đổi ở tab khác.
+     */
+    reload() {
+      const fresh = readStored();
+      if (JSON.stringify(fresh) === JSON.stringify(items)) return false;
+      items = fresh;
+      listeners.forEach((fn) => fn(items)); // không save lại: dữ liệu vốn đã nằm trong storage
+      return true;
+    },
 
     add(item, qty = 1) {
       const found = items.find((i) => i.key === item.key);

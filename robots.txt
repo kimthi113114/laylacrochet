@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://laylacrochet.pages.dev/sitemap.xml

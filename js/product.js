@@ -3,6 +3,7 @@ import { loadData } from './data.js';
 import { createCart } from './cart.js';
 import { createPanel } from './panel.js';
 import { card } from './card.js';
+import { listingUrl, pageOf } from './listing.js';
 import { mountLayout, toast } from './layout.js';
 
 const slugFromUrl = () => document.body.dataset.slug || new URLSearchParams(location.search).get('slug');
@@ -25,7 +26,7 @@ async function init() {
   const { products, categories, settings } = data;
   const cart = createCart(localStorage);
   for (const n of cart.reconcile(products)) toast(n);
-  const { openCart } = mountLayout({ settings, cart, products });
+  const { openCart } = mountLayout({ settings, cart, products, categories });
 
   const p = products.find((x) => x.slug === slugFromUrl());
   if (!p) return notFound(root);
@@ -66,7 +67,7 @@ async function init() {
       h('div', { class: 'max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8' },
         h('nav', { 'aria-label': 'Đường dẫn', class: 'text-[11px] sm:text-xs font-semibold text-yarn-muted mb-3 sm:mb-5 flex items-center gap-1.5 flex-wrap' },
           h('a', { href: '/', class: 'hover:text-yarn-orange' }, 'Trang chủ'), '›',
-          cat && [h('a', { href: `/#${cat.slug}`, class: 'hover:text-yarn-orange' }, cat.name), '›'],
+          cat && [h('a', { href: `${listingUrl({ cat: cat.slug, page: pageOf(products, p.slug, cat.slug) })}#sp-${p.slug}`, class: 'hover:text-yarn-orange', title: `Xem ${cat.name} (đúng trang có sản phẩm này)` }, cat.name), '›'],
           h('span', { class: 'text-yarn-dark truncate' }, p.name)),
         h('div', { class: 'grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start' },
           h('div', { class: 'lg:col-span-6 lg:sticky lg:top-24' }, stage, thumbs),

@@ -2,6 +2,7 @@ import { h, ic, logoMark } from './dom.js';
 import { messengerUrl, zaloUrl } from './order.js';
 import { createDrawer } from './cart-ui.js';
 import { money } from './format.js';
+import { listingUrl } from './listing.js';
 
 let toastTimer;
 export function toast(msg) {
@@ -18,7 +19,7 @@ export function toast(msg) {
 }
 
 /** Dựng thanh thông báo, header, thanh đặt hàng dưới (mobile), footer, giỏ hàng; trả về {openCart}. */
-export function mountLayout({ settings, cart, products, home = false }) {
+export function mountLayout({ settings, cart, products, categories = [], home = false }) {
   const zalo = zaloUrl(settings.zaloPhone);
   const mess = messengerUrl(settings.fbUsername);
   const drawer = createDrawer({ cart, settings, products });
@@ -51,15 +52,42 @@ export function mountLayout({ settings, cart, products, home = false }) {
       cartBtn));
 
   // ----- footer -----
-  const contactBtn = (href, label, cls) => href && h('a', { href, target: '_blank', rel: 'noopener', class: `${cls} text-white text-xs font-extrabold px-4 py-2.5 rounded-xl active:scale-95 transition-all` }, label);
-  const footer = h('footer', { id: 'contact', class: 'bg-yarn-dark text-cream-100 py-10 border-t border-white/10' },
-    h('div', { class: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left' },
-      h('div', { class: 'flex items-center gap-3' },
-        h('div', { class: 'w-8 h-8 rounded-xl bg-yarn-orange flex items-center justify-center font-serif font-bold text-white' }, (settings.shopName || 'L').charAt(0).toUpperCase()),
-        h('div', {}, h('p', { class: 'font-serif font-bold text-base' }, settings.shopName), h('p', { class: 'text-[11px] text-cream-200/60' }, settings.slogan || 'Túi móc len đựng điện thoại thủ công Việt Nam'))),
-      h('div', { class: 'flex flex-wrap items-center justify-center gap-2.5' },
-        contactBtn(zalo, 'Chat Zalo', 'bg-[#0068FF]'), contactBtn(mess, 'Messenger', 'bg-gradient-to-r from-[#00B2FF] to-[#006AFF]')),
-      h('span', { class: 'text-xs text-cream-200/80' }, `© ${new Date().getFullYear()} ${settings.shopName}`)));
+  const phoneText = (settings.zaloPhone || '').replace(/(\d{4})(\d{3})(\d{3})$/, '$1 $2 $3');
+  const colTitle = (t) => h('h4', { class: 'text-[11px] font-extrabold uppercase tracking-widest text-yarn-yellow mb-3' }, t);
+  const flink = 'text-sm text-cream-200/80 hover:text-white transition-colors';
+  const countOf = (slug) => products.filter((p) => p.category === slug).length;
+  const contactBtn = (href, label, cls) => href && h('a', { href, target: '_blank', rel: 'noopener', class: `${cls} flex-1 sm:flex-none text-center text-white text-sm font-extrabold px-5 py-3 rounded-2xl active:scale-95 transition-all shadow-lg` }, label);
+  const shipNote = settings.freeshipThreshold > 0
+    ? `Freeship đơn từ ${money(settings.freeshipThreshold)}${settings.shippingFee ? `, dưới mức này phí ship ${money(settings.shippingFee)}` : ''}.`
+    : 'Freeship mọi đơn hàng.';
+
+  const footer = h('footer', { id: 'contact', class: 'bg-yarn-dark text-cream-100' },
+    h('div', { class: 'stitch-border opacity-40' }),
+    h('div', { class: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-28 md:pb-10' },
+      h('div', { class: 'grid grid-cols-1 md:grid-cols-12 gap-9 md:gap-8' },
+        // Thương hiệu
+        h('div', { class: 'md:col-span-5 space-y-4' },
+          h('a', { href: '/', class: 'inline-flex items-center gap-3', 'aria-label': `${settings.shopName} - trang chủ` },
+            h('div', { class: 'w-11 h-11 rounded-2xl bg-gradient-to-br from-yarn-orange via-yarn-red to-yarn-yellow p-0.5' },
+              h('div', { class: 'w-full h-full bg-cream-50 rounded-[14px] flex items-center justify-center overflow-hidden' }, logoMark(settings))),
+            h('div', {}, h('p', { class: 'font-serif text-xl font-bold text-white leading-none' }, settings.shopName),
+              h('p', { class: 'text-[10px] uppercase tracking-widest text-yarn-orange font-bold mt-1' }, settings.slogan || 'Handmade Bags'))),
+          h('p', { class: 'text-sm text-cream-200/70 leading-relaxed max-w-sm' }, 'Túi và đồ len móc thủ công, từng mũi len được hoàn thiện bằng tay. Chọn mẫu, thêm vào giỏ và chốt đơn nhanh qua Zalo hoặc Messenger.'),
+          h('div', { class: 'flex gap-2.5 max-w-sm' }, contactBtn(zalo, 'Chat Zalo', 'bg-[#0068FF]'), contactBtn(mess, 'Messenger', 'bg-gradient-to-r from-[#00B2FF] to-[#006AFF]'))),
+        // Danh mục
+        h('div', { class: 'md:col-span-3' }, colTitle('Danh mục'),
+          h('ul', { class: 'space-y-2' },
+            h('li', {}, h('a', { href: '/#collection', class: flink }, `Tất cả sản phẩm (${products.length})`)),
+            categories.map((c) => h('li', {}, h('a', { href: `${listingUrl({ cat: c.slug })}#collection`, class: flink }, `${c.name} (${countOf(c.slug)})`))))),
+        // Liên hệ + giao hàng
+        h('div', { class: 'md:col-span-4' }, colTitle('Liên hệ & giao hàng'),
+          h('ul', { class: 'space-y-2.5 text-sm text-cream-200/80' },
+            phoneText && h('li', { class: 'flex items-start gap-2' }, h('span', { 'aria-hidden': 'true' }, '📞'), h('span', {}, 'Zalo / ĐT: ', h('a', { href: `tel:${settings.zaloPhone}`, class: 'text-white font-bold hover:text-yarn-yellow' }, phoneText))),
+            h('li', { class: 'flex items-start gap-2' }, h('span', { 'aria-hidden': 'true' }, '🚚'), h('span', {}, shipNote)),
+            h('li', { class: 'flex items-start gap-2' }, h('span', { 'aria-hidden': 'true' }, '💬'), h('span', {}, 'Đặt hàng: bỏ vào giỏ, bấm gửi qua Zalo hoặc Messenger, shop sẽ xác nhận với bạn.'))))),
+      h('div', { class: 'mt-9 pt-5 border-t border-white/10 flex flex-col-reverse sm:flex-row items-center justify-between gap-4 text-xs text-cream-200/60' },
+        h('span', {}, `© ${new Date().getFullYear()} ${settings.shopName}. Handmade tại Việt Nam 🧶`),
+        h('button', { type: 'button', onclick: () => scrollTo({ top: 0, behavior: 'smooth' }), class: 'inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-cream-100 font-bold active:scale-95 transition-all' }, ic('chevron-up', 'w-3.5 h-3.5'), 'Về đầu trang'))));
 
   // ----- thanh đặt hàng cố định dưới cùng (chỉ điện thoại) -----
   const mBadge = h('span', { class: 'absolute -top-1.5 -right-1.5 bg-yarn-yellow text-yarn-dark font-extrabold text-[10px] w-4 h-4 rounded-full flex items-center justify-center' });
@@ -83,6 +111,10 @@ export function mountLayout({ settings, cart, products, home = false }) {
   };
   cart.subscribe(sync);
   sync();
+  // Giữ giỏ luôn khớp với bộ nhớ: trang khôi phục từ bộ nhớ đệm khi bấm Quay lại, quay lại tab, hoặc giỏ đổi ở tab khác
+  addEventListener('pageshow', (e) => { if (e.persisted) cart.reload(); });
+  addEventListener('storage', (e) => { if (e.key === null || e.key === 'layla_cart_v1') cart.reload(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') cart.reload(); });
 
   const main = document.querySelector('main');
   document.body.insertBefore(announce, main);
