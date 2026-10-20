@@ -7,5 +7,11 @@
   "shippingFee": 30000,
   "logo": "e031b8b84b7a6cc8",
   "favicon": "6b6ffb635fb1abd5",
-  "discount": null
+  "discount": {
+    "type": "percent",
+    "value": 15,
+    "starts": null,
+    "ends": null,
+    "label": "SALE sinh nhật"
+  }
 }
